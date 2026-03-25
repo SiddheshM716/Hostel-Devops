@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: your-registry/hostelmate-backend:latest
+        image: siddheshm716/hostelmate-backend:latest
         ports:
         - containerPort: 5001
         envFrom:

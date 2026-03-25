@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: your-registry/hostelmate-frontend:latest
+        image: siddheshm716/hostelmate-frontend:latest
         ports:
         - containerPort: 80
 ---

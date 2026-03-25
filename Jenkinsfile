@@ -57,13 +57,18 @@ pipeline {
         
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG')]) {
-
-                    sh 'kubectl apply -f k8s/config.yaml'
-                    sh 'kubectl apply -f k8s/postgres.yaml'
-
-                    sh "kubectl set image deployment/backend backend=${BACKEND_IMAGE}:${env.BUILD_ID}"
-                    sh "kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${env.BUILD_ID}"
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'k8s-master-ssh',
+                    keyFileVariable: 'SSH_KEY'
+                )]) {
+                    sh """
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no ubuntu@98.130.121.75 '
+                            kubectl set image deployment/backend backend=${BACKEND_IMAGE}:${env.BUILD_ID} &&
+                            kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${env.BUILD_ID} &&
+                            kubectl rollout status deployment/backend &&
+                            kubectl rollout status deployment/frontend
+                        '
+                    """
                 }
             }
         }
