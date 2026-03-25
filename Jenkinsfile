@@ -42,15 +42,15 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS',
                     usernameVariable: 'DOCKER_USER'
                 )]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
 
-                    script {
-                        docker.build("${BACKEND_IMAGE}:${env.BUILD_ID}", "./backend").push()
-                        docker.build("${BACKEND_IMAGE}:latest", "./backend").push()
-                
-                        docker.build("${FRONTEND_IMAGE}:${env.BUILD_ID}", ".").push()
-                        docker.build("${FRONTEND_IMAGE}:latest", ".").push()
-                    }
+                    sh "docker build -t ${BACKEND_IMAGE}:${env.BUILD_ID} -t ${BACKEND_IMAGE}:latest ./backend"
+                    sh "docker push ${BACKEND_IMAGE}:${env.BUILD_ID}"
+                    sh "docker push ${BACKEND_IMAGE}:latest"
+
+                    sh "docker build -t ${FRONTEND_IMAGE}:${env.BUILD_ID} -t ${FRONTEND_IMAGE}:latest ."
+                    sh "docker push ${FRONTEND_IMAGE}:${env.BUILD_ID}"
+                    sh "docker push ${FRONTEND_IMAGE}:latest"
                 }
             }
         }
