@@ -2,7 +2,8 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_REGISTRY = 'your-docker-registry'
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/Users/siddheshm/.docker/bin:${env.PATH}"
+        DOCKER_REGISTRY = 'siddheshm716'
         BACKEND_IMAGE = "${DOCKER_REGISTRY}/hostelmate-backend"
         FRONTEND_IMAGE = "${DOCKER_REGISTRY}/hostelmate-frontend"
         KUBECONFIG = credentials('k8s-kubeconfig')
@@ -36,28 +37,34 @@ pipeline {
         
         stage('Build & Push Docker Images') {
             steps {
-                script {
-                    docker.build("${BACKEND_IMAGE}:${env.BUILD_ID}", "./backend").push()
-                    docker.build("${BACKEND_IMAGE}:latest", "./backend").push()
-                    
-                    docker.build("${FRONTEND_IMAGE}:${env.BUILD_ID}", ".").push()
-                    docker.build("${FRONTEND_IMAGE}:latest", ".").push()
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-credentials',
+                    passwordVariable: 'DOCKER_PASS',
+                    usernameVariable: 'DOCKER_USER'
+                )]) {
+                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+
+                    script {
+                        docker.build("${BACKEND_IMAGE}:${env.BUILD_ID}", "./backend").push()
+                        docker.build("${BACKEND_IMAGE}:latest", "./backend").push()
+                
+                        docker.build("${FRONTEND_IMAGE}:${env.BUILD_ID}", ".").push()
+                        docker.build("${FRONTEND_IMAGE}:latest", ".").push()
+                    }
                 }
             }
         }
         
         stage('Deploy to Kubernetes') {
             steps {
-                // Apply configurations and stateful components first
-                sh 'kubectl apply -f k8s/config.yaml'
-                sh 'kubectl apply -f k8s/postgres.yaml'
-                
-                // Inject the dynamic build tags into the deployments natively
-                sh "sed -i 's|your-registry/hostelmate-backend:latest|${BACKEND_IMAGE}:${env.BUILD_ID}|g' k8s/backend.yaml"
-                sh "sed -i 's|your-registry/hostelmate-frontend:latest|${FRONTEND_IMAGE}:${env.BUILD_ID}|g' k8s/frontend.yaml"
-                
-                sh 'kubectl apply -f k8s/backend.yaml'
-                sh 'kubectl apply -f k8s/frontend.yaml'
+                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG')]) {
+
+                    sh 'kubectl apply -f k8s/config.yaml'
+                    sh 'kubectl apply -f k8s/postgres.yaml'
+
+                    sh "kubectl set image deployment/backend backend=${BACKEND_IMAGE}:${env.BUILD_ID}"
+                    sh "kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${env.BUILD_ID}"
+                }
             }
         }
     }
