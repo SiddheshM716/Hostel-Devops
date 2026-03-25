@@ -64,7 +64,7 @@ pipeline {
                             kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${env.BUILD_ID} &&
                             kubectl rollout status deployment/backend &&
                             kubectl rollout status deployment/frontend
-                        """
+                        "
                     """
                 }
             }
