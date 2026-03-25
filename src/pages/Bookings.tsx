@@ -27,12 +27,6 @@ import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <EventNoteIcon />, path: '/student-dashboard' },
-  { text: 'Complaints', icon: <EventNoteIcon />, path: '/student-dashboard/complaints' },
-  { text: 'Payments', icon: <EventNoteIcon />, path: '/student-dashboard/payments' },
-  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
-];
 
 interface Booking {
   booking_id: string;
@@ -94,7 +88,7 @@ export default function Bookings() {
   };
 
   return (
-    <DashboardLayout title="My Bookings" menuItems={menuItems}>
+    <DashboardLayout title="My Bookings">
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>

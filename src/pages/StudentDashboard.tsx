@@ -25,18 +25,14 @@ import {
   EventNote as EventNoteIcon,
   Assignment as AssignmentIcon,
   ArrowForward as ArrowForwardIcon,
+  RestaurantMenu as RestaurantMenuIcon,
+  CardTravel as CardTravelIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../lib/api';
 import { Room, Student } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/student-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/student-dashboard/complaints' },
-  { text: 'Payments', icon: <PaymentIcon />, path: '/student-dashboard/payments' },
-  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
-];
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -103,7 +99,7 @@ export default function StudentDashboard() {
   };
 
   return (
-    <DashboardLayout title="Student Dashboard" menuItems={menuItems}>
+    <DashboardLayout title="Student Dashboard">
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -142,7 +138,7 @@ export default function StudentDashboard() {
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Submit and track your maintenance requests and complaints
+                  Submit and track your complaints
                 </Typography>
               </CardContent>
               <MuiCardActions>
@@ -175,6 +171,52 @@ export default function StudentDashboard() {
                   sx={{ color: '#6B46C1' }}
                 >
                   View Payments
+                </Button>
+              </MuiCardActions>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <RestaurantMenuIcon sx={{ fontSize: 40, color: '#6B46C1', mr: 2 }} />
+                  <Typography variant="h6" component="h2" sx={{ color: '#2D3748' }}>
+                    Mess Menu
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Check out the weekly mess menu 
+                </Typography>
+              </CardContent>
+              <MuiCardActions>
+                <Button
+                  startIcon={<ArrowForwardIcon />}
+                  onClick={() => navigate('/student-dashboard/mess')}
+                  sx={{ color: '#6B46C1' }}
+                >
+                  View Menu
+                </Button>
+              </MuiCardActions>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <CardTravelIcon sx={{ fontSize: 40, color: '#6B46C1', mr: 2 }} />
+                  <Typography variant="h6" component="h2" sx={{ color: '#2D3748' }}>
+                    My Requests
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Apply for visitors and leaves
+                </Typography>
+              </CardContent>
+              <MuiCardActions>
+                <Button
+                  startIcon={<ArrowForwardIcon />}
+                  onClick={() => navigate('/student-dashboard/requests')}
+                  sx={{ color: '#6B46C1' }}
+                >
+                  View Requests
                 </Button>
               </MuiCardActions>
             </Card>
@@ -235,13 +277,13 @@ export default function StudentDashboard() {
                           Capacity: {room.room_capacity} students
                         </Typography>
                         <Typography variant="h6" color="primary">
-                          ₹{room.rent}/month
+                          ₹{room.yearly_fee}/year
                         </Typography>
                         <Button
                           variant="contained"
                           color="primary"
                           fullWidth
-                          onClick={() => navigate(`/student-dashboard/rooms/${room.room_id}`)}
+                          onClick={() => navigate('/student-dashboard/rooms')}
                         >
                           View Details
                         </Button>
@@ -266,9 +308,10 @@ export default function StudentDashboard() {
               onChange={(e) => setComplaintForm({ ...complaintForm, type: e.target.value })}
               sx={{ mt: 2 }}
             >
-              <MenuItem value="maintenance">Maintenance</MenuItem>
-              <MenuItem value="security">Security</MenuItem>
-              <MenuItem value="cleanliness">Cleanliness</MenuItem>
+              <MenuItem value="plumbing">Plumbing</MenuItem>
+              <MenuItem value="furniture">Furniture</MenuItem>
+              <MenuItem value="house_keeping">House Keeping</MenuItem>
+              <MenuItem value="management">Management</MenuItem>
               <MenuItem value="other">Other</MenuItem>
             </TextField>
             <TextField

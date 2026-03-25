@@ -21,17 +21,13 @@ import {
   People as PeopleIcon,
   Room as RoomIcon,
   Assignment as AssignmentIcon,
+  RestaurantMenu as RestaurantMenuIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../lib/api';
 import { Complaint, Room } from '../types';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/warden-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/warden-dashboard/warden-complaints' },
-  { text: 'Students', icon: <PeopleIcon />, path: '/warden-dashboard/students' },
-  { text: 'Maintenance', icon: <AssignmentIcon />, path: '/warden-dashboard/maintenance' },
-];
 
 export default function WardenDashboard() {
   const navigate = useNavigate();
@@ -90,7 +86,7 @@ export default function WardenDashboard() {
   const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0;
 
   return (
-    <DashboardLayout title="Warden Dashboard" menuItems={menuItems}>
+    <DashboardLayout title="Warden Dashboard">
       <Box sx={{ display: 'grid', gap: 3 }}>
         {/* Welcome Section */}
         <Card sx={{ bgcolor: '#6B46C1', color: 'white' }}>
@@ -258,19 +254,36 @@ export default function WardenDashboard() {
               </Button>
             </CardContent>
           </Card>
+
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Maintenance
+                Mess Menu
               </Typography>
               <Button
                 variant="outlined"
                 fullWidth
-                startIcon={<AssignmentIcon />}
-                onClick={() => navigate('/warden-dashboard/maintenance')}
+                startIcon={<RestaurantMenuIcon />}
+                onClick={() => navigate('/warden-dashboard/mess')}
                 sx={{ mt: 2 }}
               >
-                Maintenance Tasks
+                Manage Menu
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Approvals
+              </Typography>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<CheckCircleIcon />}
+                onClick={() => navigate('/warden-dashboard/approvals')}
+                sx={{ mt: 2 }}
+              >
+                Leaves & Visitors
               </Button>
             </CardContent>
           </Card>

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hostelmate-config
+data:
+  PORT: "5001"
+  DB_HOST: "postgres-svc"
+  DB_PORT: "5432"
+  DB_NAME: "hostel_db"
+  DB_USER: "postgres"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hostelmate-secrets
+type: Opaque
+data:
+  # 'password' encoded in base64
+  DB_PASSWORD: cGFzc3dvcmQ=
+  # 'supersecretkey123' encoded in base64
+  JWT_SECRET: c3VwZXJzZWNyZXRrZXkxMjM=

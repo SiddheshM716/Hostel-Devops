@@ -28,7 +28,7 @@ const features = [
   {
     icon: <AssignmentIcon sx={{ fontSize: 32 }} />,
     title: 'Complaint Management',
-    description: 'Raise maintenance requests and track their status in real-time. Get quick responses from hostel management.',
+    description: 'Raise complaints and track their status in real-time. Get quick responses from hostel management.',
   },
   {
     icon: <PaymentIcon sx={{ fontSize: 32 }} />,
@@ -317,10 +317,10 @@ export default function Home() {
 
       {/* Simple Footer */}
       <Container maxWidth="lg" sx={{ py: 6, borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          © {new Date().getFullYear()} HMS Hostel Management System. All rights reserved.
+        <Typography variant="body2" color="white" align="center" sx={{ opacity: 0.8 }}>
+          © {new Date().getFullYear()} HostelMate. All rights reserved.
         </Typography>
       </Container>
     </Box>
   );
-} 
+}

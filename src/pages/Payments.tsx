@@ -40,12 +40,6 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import DashboardLayout from '../components/DashboardLayout';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/student-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/student-dashboard/complaints' },
-  { text: 'Payments', icon: <PaymentIcon />, path: '/student-dashboard/payments' },
-  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
-];
 
 interface Payment {
   payment_id: number;
@@ -111,7 +105,7 @@ export default function Payments() {
   const lastPayment = payments[0];
 
   return (
-    <DashboardLayout title="Payment History" menuItems={menuItems}>
+    <DashboardLayout title="Payment History">
       <Container maxWidth="lg" sx={{ py: 4 }}>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}

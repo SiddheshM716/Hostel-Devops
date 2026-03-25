@@ -63,10 +63,10 @@ export default function SignUp() {
       <Container maxWidth="sm">
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#6B46C1' }}>
-            Create Account
+            Join HostelMate
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
-            Join our hostel management system
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Create an account to start managing your hostel experience
           </Typography>
 
           {error && (

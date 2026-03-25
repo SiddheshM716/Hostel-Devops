@@ -15,9 +15,11 @@ app.use('/api/wardens', require('./routes/wardens'));
 app.use('/api/rooms', require('./routes/rooms'));
 app.use('/api/allocations', require('./routes/allocations'));
 app.use('/api/complaints', require('./routes/complaints'));
-app.use('/api/maintenance', require('./routes/maintenance'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/hostels', require('./routes/hostels'));
+app.use('/api/mess', require('./routes/mess'));
+app.use('/api/visitors', require('./routes/visitors'));
+app.use('/api/leaves', require('./routes/leaves'));
 
 // Global error handler
 app.use((err, req, res, next) => {

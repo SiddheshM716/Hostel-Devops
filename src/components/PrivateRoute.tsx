@@ -20,11 +20,10 @@ export default function PrivateRoute({ children, allowedRoles }: PrivateRoutePro
   }
 
   // Check if the route has role restrictions
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect to appropriate dashboard based on user role
-    const redirectPath = user.role === 'student' ? '/student-dashboard' : '/warden-dashboard';
-    return <Navigate to={redirectPath} replace />;
+  if (allowedRoles && (!user.role || !allowedRoles.includes(user.role))) {
+    // Role not authorized, redirect to home page
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
-} 
+}

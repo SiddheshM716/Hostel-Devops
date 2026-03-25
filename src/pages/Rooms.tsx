@@ -13,7 +13,11 @@ import {
   DialogActions,
   Alert,
   CircularProgress,
-  Chip
+  Chip,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from '@mui/material';
 import {
   Room as RoomIcon,
@@ -28,24 +32,39 @@ import { useAuth } from '../contexts/AuthContext';
 import { Room } from '../types';
 import DashboardLayout from '../components/DashboardLayout';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/student-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/student-dashboard/complaints' },
-  { text: 'Payments', icon: <PaymentIcon />, path: '/student-dashboard/payments' },
-  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
-];
 
 export default function Rooms() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
+  const [displayedRooms, setDisplayedRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
+  const [capacityFilter, setCapacityFilter] = useState<string>('all');
+  const [acFilter, setAcFilter] = useState<string>('all');
+  const [bathroomFilter, setBathroomFilter] = useState<string>('all');
+
   useEffect(() => {
     fetchRooms();
   }, []);
+
+  useEffect(() => {
+    let filtered = allRooms;
+    if (capacityFilter !== 'all') {
+      filtered = filtered.filter(r => r.room_capacity === parseInt(capacityFilter));
+    }
+    if (acFilter !== 'all') {
+      const isAc = acFilter === 'true';
+      filtered = filtered.filter(r => r.has_ac === isAc);
+    }
+    if (bathroomFilter !== 'all') {
+      const isAttached = bathroomFilter === 'true';
+      filtered = filtered.filter(r => r.has_attached_bathroom === isAttached);
+    }
+    setDisplayedRooms(filtered);
+  }, [allRooms, capacityFilter, acFilter, bathroomFilter]);
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -54,7 +73,6 @@ export default function Rooms() {
     try {
       const data = await api.get('/rooms');
 
-      // Show all rooms that have at least 1 vacancy (regardless of occupancy_status)
       const roomsWithVacancies = data
         .map((room: any) => ({
           ...room,
@@ -64,7 +82,8 @@ export default function Rooms() {
         .filter((room: any) => room.vacancies > 0)
         .sort((a: any, b: any) => a.room_no.localeCompare(b.room_no));
 
-      setRooms(roomsWithVacancies);
+      setAllRooms(roomsWithVacancies);
+      setDisplayedRooms(roomsWithVacancies);
     } catch (error) {
       console.error('Error fetching rooms:', error);
       setError('Failed to load available rooms');
@@ -74,7 +93,7 @@ export default function Rooms() {
   };
 
   return (
-    <DashboardLayout title="Available Rooms" menuItems={menuItems}>
+    <DashboardLayout title="Available Rooms">
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography variant="h4" component="h1" sx={{ color: '#2D3748' }}>
@@ -82,11 +101,53 @@ export default function Rooms() {
           </Typography>
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/student-dashboard')}
+            onClick={() => navigate(user?.role === 'warden' ? '/warden-dashboard' : '/student-dashboard')}
             sx={{ color: '#6B46C1' }}
           >
             Back to Dashboard
           </Button>
+        </Box>
+
+        {/* Filters */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Capacity</InputLabel>
+            <Select
+              value={capacityFilter}
+              label="Capacity"
+              onChange={(e) => setCapacityFilter(e.target.value)}
+            >
+              <MenuItem value="all">Any</MenuItem>
+              <MenuItem value="1">1 Person</MenuItem>
+              <MenuItem value="2">2 Persons</MenuItem>
+              <MenuItem value="3">3 Persons</MenuItem>
+              <MenuItem value="4">4 Persons</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>AC</InputLabel>
+            <Select
+              value={acFilter}
+              label="AC"
+              onChange={(e) => setAcFilter(e.target.value)}
+            >
+              <MenuItem value="all">Any</MenuItem>
+              <MenuItem value="true">Yes</MenuItem>
+              <MenuItem value="false">No</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 180 }}>
+            <InputLabel>Attached Bathroom</InputLabel>
+            <Select
+              value={bathroomFilter}
+              label="Attached Bathroom"
+              onChange={(e) => setBathroomFilter(e.target.value)}
+            >
+              <MenuItem value="all">Any</MenuItem>
+              <MenuItem value="true">Yes</MenuItem>
+              <MenuItem value="false">No</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {error && (
@@ -100,7 +161,7 @@ export default function Rooms() {
             <CircularProgress />
             <Typography sx={{ ml: 2 }}>Loading rooms...</Typography>
           </Box>
-        ) : rooms.length === 0 ? (
+        ) : displayedRooms.length === 0 ? (
           <Alert severity="info">No available rooms found</Alert>
         ) : (
           <Box sx={{ 
@@ -112,7 +173,7 @@ export default function Rooms() {
             }, 
             gap: 3 
           }}>
-            {rooms.map((room) => (
+            {displayedRooms.map((room) => (
               <Card
                 key={room.room_id}
                 sx={{
@@ -134,12 +195,15 @@ export default function Rooms() {
                       <Typography variant="subtitle1" color="text.secondary">
                         Room {room.room_no}
                       </Typography>
-                      <Chip
-                        label={room.room_type}
-                        color="primary"
-                        size="small"
-                        sx={{ mb: 1 }}
-                      />
+                      <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                        <Chip
+                          label={room.room_type}
+                          color="primary"
+                          size="small"
+                        />
+                        {room.has_ac && <Chip label="AC" color="secondary" size="small" />}
+                        {room.has_attached_bathroom && <Chip label="Attached Bath" color="default" size="small" />}
+                      </Stack>
                     </Box>
                     <Typography color="text.secondary">
                       Capacity: {room.room_capacity} students
@@ -148,7 +212,7 @@ export default function Rooms() {
                       Vacancies: {room.vacancies}
                     </Typography>
                     <Typography variant="h6" color="primary">
-                      ₹{room.rent}
+                      Yearly Fee: ₹{room.yearly_fee}
                     </Typography>
                     <Button
                       variant="contained"
@@ -195,6 +259,15 @@ export default function Rooms() {
                   </Box>
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">
+                      Amenities
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedRoom.has_ac ? 'AC' : 'Non-AC'},{' '}
+                      {selectedRoom.has_attached_bathroom ? 'Attached Bathroom' : 'Shared Bathroom'}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
                       Capacity
                     </Typography>
                     <Typography variant="body1">{selectedRoom.room_capacity} students</Typography>
@@ -207,21 +280,21 @@ export default function Rooms() {
                   </Box>
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">
-                      Rent
+                      Yearly Fee
                     </Typography>
-                    <Typography variant="body1">₹{selectedRoom.rent}</Typography>
+                    <Typography variant="body1">₹{selectedRoom.yearly_fee}</Typography>
                   </Box>
                 </Stack>
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setSelectedRoom(null)}>Close</Button>
+                {user?.role === 'student' && (
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={async () => {
                     if (!selectedRoom) return;
                   
-                    // 1. Get currently logged-in user
                     if (!user || user.role !== 'student') {
                       alert('Not logged in as student.');
                       return;
@@ -230,10 +303,8 @@ export default function Rooms() {
                     const studentId = user.student_id || user.id;
                   
                     try {
-                      // 3. Insert into payment table and create allocation (simulated)
-                      // Ideally we'd have a booking endpoint, but for now we emulate the logic
                       await api.post('/payments', {
-                        amount: selectedRoom.rent,
+                        amount: selectedRoom.yearly_fee,
                         payment_mode: 'UPI',
                         payment_date: new Date().toISOString().split('T')[0]
                       });
@@ -245,12 +316,6 @@ export default function Rooms() {
                       });
                   
                       alert('Room booked successfully!');
-                    
-                      // 5. Update room vacancies (we don't have a room patch endpoint in our backend yet. But the allocation trigger usually handles status!)
-                      // Actually the trigger update_room_occupancy updates 'Occupied', but what about vacancies?
-                      // We will just let the DB handle it if we had a trigger for vacancies.
-                      // Given our simple mock, we'll just ignore manual patching of room vacancies.
-                      
                       fetchRooms();
                     } catch (error: any) {
                       console.error('Booking failed:', error.message);
@@ -259,10 +324,10 @@ export default function Rooms() {
                   
                     setSelectedRoom(null);
                   }}
-                  
                 >
                   Book Room
                 </Button>
+                )}
               </DialogActions>
             </>
           )}

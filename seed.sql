@@ -15,18 +15,18 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Rooms
-INSERT INTO room (room_capacity, hostel_id, rent, room_type, room_no, occupancy_status)
+INSERT INTO room (room_capacity, hostel_id, yearly_fee, has_attached_bathroom, has_ac, room_type, room_no, occupancy_status)
 VALUES
-  (1, 1, 8000.00, 'Single', 'A101', 'Available'),
-  (2, 1, 5500.00, 'Double', 'A102', 'Available'),
-  (2, 1, 5500.00, 'Double', 'A103', 'Occupied'),
-  (3, 1, 4000.00, 'Triple', 'A201', 'Available'),
-  (4, 1, 3000.00, 'Dormitory', 'A202', 'Available'),
-  (1, 2, 8500.00, 'Single', 'B101', 'Available'),
-  (2, 2, 6000.00, 'Double', 'B102', 'Occupied'),
-  (2, 2, 6000.00, 'Double', 'B103', 'Available'),
-  (3, 2, 4500.00, 'Triple', 'B201', 'Available'),
-  (4, 2, 3500.00, 'Dormitory', 'B202', 'Available')
+  (1, 1, 96000.00, true, true, 'Single', 'A101', 'Available'),
+  (2, 1, 66000.00, true, false, 'Double', 'A102', 'Available'),
+  (2, 1, 66000.00, false, false, 'Double', 'A103', 'Occupied'),
+  (3, 1, 48000.00, false, false, 'Triple', 'A201', 'Available'),
+  (4, 1, 36000.00, false, false, 'Dormitory', 'A202', 'Available'),
+  (1, 2, 102000.00, true, true, 'Single', 'B101', 'Available'),
+  (2, 2, 72000.00, true, false, 'Double', 'B102', 'Occupied'),
+  (2, 2, 72000.00, false, false, 'Double', 'B103', 'Available'),
+  (3, 2, 54000.00, false, false, 'Triple', 'B201', 'Available'),
+  (4, 2, 42000.00, false, false, 'Dormitory', 'B202', 'Available')
 ON CONFLICT DO NOTHING;
 
 -- Students (password: student123)

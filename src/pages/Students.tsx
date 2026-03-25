@@ -32,12 +32,6 @@ interface Student {
   phone_number: string;
 }
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/warden-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/warden-dashboard/warden-complaints' },
-  { text: 'Students', icon: <PeopleIcon />, path: '/warden-dashboard/students' },
-  { text: 'Maintenance', icon: <AssignmentIcon />, path: '/warden-dashboard/maintenance' },
-];
 
 export default function Students() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -68,7 +62,7 @@ export default function Students() {
   );
 
   return (
-    <DashboardLayout title="Student Management" menuItems={menuItems}>
+    <DashboardLayout title="Student Management">
       <Box sx={{ p: 3 }}>
         <Card sx={{ mb: 3 }}>
           <CardContent>

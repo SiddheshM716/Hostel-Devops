@@ -44,12 +44,6 @@ interface Complaint {
   updated_at: string;
 }
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/warden-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/warden-dashboard/warden-complaints' },
-  { text: 'Students', icon: <PeopleIcon />, path: '/warden-dashboard/students' },
-  { text: 'Maintenance', icon: <AssignmentIcon />, path: '/warden-dashboard/maintenance' },
-];
 
 export default function WardenComplaints() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -142,7 +136,7 @@ export default function WardenComplaints() {
   };
 
   return (
-    <DashboardLayout title="Complaints Management" menuItems={menuItems}>
+    <DashboardLayout title="Complaints Management">
       <Box sx={{ p: 3 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>

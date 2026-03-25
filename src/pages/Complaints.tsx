@@ -31,12 +31,6 @@ import { Complaint } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <RoomIcon />, path: '/student-dashboard' },
-  { text: 'Complaints', icon: <ReportIcon />, path: '/student-dashboard/complaints' },
-  { text: 'Payments', icon: <PaymentIcon />, path: '/student-dashboard/payments' },
-  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
-];
 
 export default function Complaints() {
   const { user } = useAuth();
@@ -113,7 +107,7 @@ export default function Complaints() {
   };
 
   return (
-    <DashboardLayout title="My Complaints" menuItems={menuItems}>
+    <DashboardLayout title="My Complaints">
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography variant="h4" component="h1" sx={{ color: '#2D3748' }}>

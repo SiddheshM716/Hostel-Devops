@@ -40,7 +40,9 @@ CREATE TABLE room (
     room_id SERIAL PRIMARY KEY,
     room_capacity INTEGER NOT NULL,
     hostel_id INTEGER,
-    rent NUMERIC(10,2) NOT NULL,
+    yearly_fee NUMERIC(10,2) NOT NULL,
+    has_attached_bathroom BOOLEAN DEFAULT false,
+    has_ac BOOLEAN DEFAULT false,
     room_type VARCHAR(20) NOT NULL CHECK (room_type IN ('Single', 'Double', 'Triple', 'Dormitory')),
     room_no VARCHAR(20) NOT NULL,
     occupancy_status VARCHAR(20) NOT NULL CHECK (occupancy_status IN ('Available', 'Occupied')),
@@ -73,25 +75,41 @@ CREATE TABLE complaint (
     FOREIGN KEY (warden_id) REFERENCES warden(warden_id) ON DELETE SET NULL
 );
 
--- Visitor table
 CREATE TABLE visitor (
     visitor_id SERIAL PRIMARY KEY,
     student_id INTEGER,
+    warden_id INTEGER,
     visitor_date DATE NOT NULL,
     visitor_name VARCHAR(100) NOT NULL,
     visitor_email VARCHAR(100) NOT NULL UNIQUE,
-    FOREIGN KEY (student_id) REFERENCES student(student_id) ON DELETE CASCADE
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Declined')),
+    FOREIGN KEY (student_id) REFERENCES student(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (warden_id) REFERENCES warden(warden_id) ON DELETE SET NULL
 );
 
--- Mess table
-CREATE TABLE mess (
-    mess_id SERIAL PRIMARY KEY,
+-- Mess Menu table (Replaces old student-specific Mess table)
+CREATE TABLE mess_menu (
+    menu_id SERIAL PRIMARY KEY,
+    day_of_week VARCHAR(20) NOT NULL,
+    meal_type VARCHAR(20) NOT NULL,
+    veg_item TEXT NOT NULL,
+    non_veg_item TEXT,
+    timing VARCHAR(50) NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Leave Application table
+CREATE TABLE leave_application (
+    leave_id SERIAL PRIMARY KEY,
     student_id INTEGER,
-    cost_per_meal NUMERIC(10,2) NOT NULL,
-    meal_timing VARCHAR(50) NOT NULL,
-    veg TEXT,
-    non_veg TEXT,
-    FOREIGN KEY (student_id) REFERENCES student(student_id) ON DELETE CASCADE
+    warden_id INTEGER,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Declined')),
+    applied_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES student(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (warden_id) REFERENCES warden(warden_id) ON DELETE SET NULL
 );
 
 -- Payment table

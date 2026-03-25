@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: hostelmate-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hostel_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Mount initialization scripts
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./seed_new.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - hostelmate-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hostel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hostelmate-backend
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_HOST=database
+      - DB_NAME=hostel_db
+      - DB_PORT=5432
+      - JWT_SECRET=supersecretkey123
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - hostelmate-network
+
+  frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: hostelmate-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - hostelmate-network
+
+networks:
+  hostelmate-network:
+    driver: bridge
+
+volumes:
+  pgdata:

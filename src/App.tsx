@@ -12,8 +12,11 @@ import Rooms from './pages/Rooms';
 import Payments from './pages/Payments';
 import Bookings from './pages/Bookings';
 import Students from './pages/Students';
-import Maintenance from './pages/Maintenance';
 import PrivateRoute from './components/PrivateRoute';
+import StudentMessMenu from './pages/MessMenu';
+import WardenMessMenu from './pages/WardenMessMenu';
+import StudentRequests from './pages/StudentRequests';
+import WardenApprovals from './pages/WardenApprovals';
 
 const theme = createTheme({
   palette: {
@@ -117,6 +120,22 @@ function App() {
               }
             />
             <Route
+              path="/student-dashboard/mess"
+              element={
+                <PrivateRoute allowedRoles={['student']}>
+                  <StudentMessMenu />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/student-dashboard/requests"
+              element={
+                <PrivateRoute allowedRoles={['student']}>
+                  <StudentRequests />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/warden-dashboard"
               element={
                 <PrivateRoute allowedRoles={['warden']}>
@@ -141,13 +160,30 @@ function App() {
               }
             />
             <Route
-              path="/warden-dashboard/maintenance"
+              path="/warden-dashboard/rooms"
               element={
                 <PrivateRoute allowedRoles={['warden']}>
-                  <Maintenance />
+                  <Rooms />
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/warden-dashboard/mess"
+              element={
+                <PrivateRoute allowedRoles={['warden']}>
+                  <WardenMessMenu />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/warden-dashboard/approvals"
+              element={
+                <PrivateRoute allowedRoles={['warden']}>
+                  <WardenApprovals />
+                </PrivateRoute>
+              }
+            />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>

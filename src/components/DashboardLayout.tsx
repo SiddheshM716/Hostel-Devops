@@ -18,26 +18,50 @@ import {
 import {
   Menu as MenuIcon,
   Logout as LogoutIcon,
+  Room as RoomIcon,
+  Report as ReportIcon,
+  Payment as PaymentIcon,
+  EventNote as EventNoteIcon,
+  RestaurantMenu as RestaurantMenuIcon,
+  CardTravel as CardTravelIcon,
+  People as PeopleIcon,
+  Assignment as AssignmentIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+
+const studentMenuItems = [
+  { text: 'Dashboard', icon: <RoomIcon />, path: '/student-dashboard' },
+  { text: 'Complaints', icon: <ReportIcon />, path: '/student-dashboard/complaints' },
+  { text: 'Payments', icon: <PaymentIcon />, path: '/student-dashboard/payments' },
+  { text: 'My Bookings', icon: <EventNoteIcon />, path: '/student-dashboard/bookings' },
+  { text: 'Mess Menu', icon: <RestaurantMenuIcon />, path: '/student-dashboard/mess' },
+  { text: 'My Requests', icon: <CardTravelIcon />, path: '/student-dashboard/requests' },
+];
+
+const wardenMenuItems = [
+  { text: 'Dashboard', icon: <RoomIcon />, path: '/warden-dashboard' },
+  { text: 'Complaints', icon: <ReportIcon />, path: '/warden-dashboard/warden-complaints' },
+  { text: 'Students', icon: <PeopleIcon />, path: '/warden-dashboard/students' },
+  { text: 'Rooms', icon: <RoomIcon />, path: '/warden-dashboard/rooms' },
+  { text: 'Mess Menu', icon: <RestaurantMenuIcon />, path: '/warden-dashboard/mess' },
+  { text: 'Approvals', icon: <CheckCircleIcon />, path: '/warden-dashboard/approvals' },
+];
 
 const drawerWidth = 240;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  title: string;
-  menuItems: {
-    text: string;
-    icon: React.ReactNode;
-    path: string;
-  }[];
+  title?: string;
 }
 
-export default function DashboardLayout({ children, title, menuItems }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  
+  const menuItems = user?.role === 'warden' ? wardenMenuItems : studentMenuItems;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -52,17 +76,11 @@ export default function DashboardLayout({ children, title, menuItems }: Dashboar
     }
   };
 
-  const getCurrentPageTitle = () => {
-    const currentPath = location.pathname;
-    const menuItem = menuItems.find(item => item.path === currentPath);
-    return menuItem ? menuItem.text : title;
-  };
-
   const drawer = (
     <div>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Hostel MS
+          {title || 'HostelMate'}
         </Typography>
       </Toolbar>
       <Divider />
@@ -103,8 +121,8 @@ export default function DashboardLayout({ children, title, menuItems }: Dashboar
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {getCurrentPageTitle()}
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            HostelMate
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" sx={{ display: { xs: 'none', sm: 'block' } }}>

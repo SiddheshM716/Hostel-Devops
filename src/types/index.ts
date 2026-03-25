@@ -25,16 +25,17 @@ export interface Warden {
 export interface Room {
   room_id: number;
   room_no: string;
-  room_type: '2_sharing' | '3_sharing' | '4_sharing';
+  room_type: 'Single' | 'Double' | 'Triple' | 'Dormitory';
   room_capacity: number;
-  rent: number;
-  occupancy_status: 'available' | 'occupied';
+  yearly_fee: number;
+  has_attached_bathroom: boolean;
+  has_ac: boolean;
+  occupancy_status: 'Available' | 'Occupied';
   hostel_id?: number;
   vacancies?: number;
-  hostel?: {  // Add this optional property for the joined data
+  hostel?: {
     hostel_id: number;
     hostel_name: string;
-    // include other hostel fields you want to display
   };
 }
 
@@ -61,18 +62,36 @@ export interface Complaint {
 export interface Visitor {
   visitor_id: number;
   student_id?: number;
+  warden_id?: number;
   visitor_name: string;
   visitor_email: string;
   visitor_date: string;
+  status: 'Pending' | 'Approved' | 'Declined';
+  warden_name?: string;
+  student_name?: string;
 }
 
-export interface Mess {
-  mess_id: number;
+export interface MessMenu {
+  menu_id: number;
+  day_of_week: string;
+  meal_type: string;
+  veg_item: string;
+  non_veg_item?: string;
+  timing: string;
+  updated_at?: string;
+}
+
+export interface LeaveApplication {
+  leave_id: number;
   student_id?: number;
-  cost_per_meal: number;
-  meal_timing: string;
-  veg?: string;
-  non_veg?: string;
+  warden_id?: number;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Declined';
+  applied_at: string;
+  warden_name?: string;
+  student_name?: string;
 }
 
 export interface Payment {

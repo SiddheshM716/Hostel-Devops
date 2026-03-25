@@ -1,0 +1,113 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Disable swap
+      command: swapoff -a
+      
+    - name: Remove swap from fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+        
+    - name: Install required packages
+      apt:
+        name: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common' ]
+        state: present
+        update_cache: yes
+        
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Configure Kernel Modules for K8s
+      shell: |
+        cat <<EOF | tee /etc/modules-load.d/k8s.conf
+        overlay
+        br_netfilter
+        EOF
+        modprobe overlay
+        modprobe br_netfilter
+
+    - name: Configure Sysctl networking for K8s
+      shell: |
+        cat <<EOF | tee /etc/sysctl.d/k8s.conf
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.ipv4.ip_forward                 = 1
+        EOF
+        sysctl --system
+
+    - name: Install containerd
+      apt:
+        name: containerd.io
+        state: present
+
+    - name: Configure containerd
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+        sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+        systemctl restart containerd
+        systemctl enable containerd
+        
+    - name: Ensure keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Setup Kubernetes GPG key
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+        state: present
+        filename: kubernetes
+
+    - name: Install Kubernetes binaries
+      apt:
+        name: [ 'kubelet', 'kubeadm', 'kubectl' ]
+        state: present
+        allow_unauthenticated: yes
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU,Mem
+      register: kubeadm_init
+      
+    - name: Setup kubeconfig for ubuntu user
+      shell: |
+        mkdir -p /home/ubuntu/.kube
+        cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+        chown ubuntu:ubuntu /home/ubuntu/.kube/config
+
+    - name: Install Flannel CNI
+      become_user: ubuntu
+      command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      
+    - name: Generate join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Save join command as fact
+      set_fact:
+        k8s_join_command: "{{ join_command.stdout }}"
+
+- hosts: workers
+  become: yes
+  tasks:
+    - name: Join worker nodes to cluster
+      command: "{{ hostvars[groups['master'][0]]['k8s_join_command'] }} --ignore-preflight-errors=NumCPU,Mem"
