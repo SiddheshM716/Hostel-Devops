@@ -44,13 +44,19 @@ pipeline {
                 )]) {
                     sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
 
-                    sh "docker build -t ${BACKEND_IMAGE}:${env.BUILD_ID} -t ${BACKEND_IMAGE}:latest ./backend"
-                    sh "docker push ${BACKEND_IMAGE}:${env.BUILD_ID}"
-                    sh "docker push ${BACKEND_IMAGE}:latest"
+                    sh """
+                        docker buildx build --platform linux/amd64 \
+                        -t ${BACKEND_IMAGE}:${env.BUILD_ID} \
+                        -t ${BACKEND_IMAGE}:latest \
+                        --push ./backend
+                    """
 
-                    sh "docker build -t ${FRONTEND_IMAGE}:${env.BUILD_ID} -t ${FRONTEND_IMAGE}:latest ."
-                    sh "docker push ${FRONTEND_IMAGE}:${env.BUILD_ID}"
-                    sh "docker push ${FRONTEND_IMAGE}:latest"
+                    sh """
+                        docker buildx build --platform linux/amd64 \
+                        -t ${FRONTEND_IMAGE}:${env.BUILD_ID} \
+                        -t ${FRONTEND_IMAGE}:latest \
+                        --push .
+                    """
                 }
             }
         }
