@@ -21,6 +21,12 @@ describe('HostelMate Signup and Login Flow', () => {
   })
 
   it('shows an error toast for invalid login credentials', () => {
+    // Intercept the API call to mock a backend rejection
+    cy.intercept('POST', '**/api/auth/signin*', {
+      statusCode: 400,
+      body: { error: 'Invalid Credentials' },
+    }).as('loginRequest')
+
     cy.visit('/signin')
 
     cy.get('input[type="email"]').type('fake@example.com')
@@ -29,8 +35,10 @@ describe('HostelMate Signup and Login Flow', () => {
     // Assuming standard MUI or generic button wrapping
     cy.get('button[type="submit"]').click()
 
+    // Wait for the mock network request
+    cy.wait('@loginRequest')
+
     // Cypress should catch the error state, usually via a toast or alert text
-    // "Invalid Credentials" comes from our node backend response
     cy.contains('Invalid Credentials', { matchCase: false }).should('exist')
   })
 })
