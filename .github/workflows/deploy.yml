@@ -9,6 +9,30 @@ jobs:
   test-and-build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: hostel_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_HOST: localhost
+      DB_NAME: hostel_db
+      DB_PORT: 5432
+      JWT_SECRET: supersecretkey123
+      PORT: 5001
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -18,6 +42,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Initialize Database
+        env:
+          PGPASSWORD: password
+        run: |
+          sudo apt-get install -y postgresql-client
+          psql -h localhost -U postgres -d hostel_db -f schema.sql
+          psql -h localhost -U postgres -d hostel_db -f seed_new.sql
+
       - name: Backend Tests (Jest)
         working-directory: ./backend
         run: |
@@ -26,6 +58,8 @@ jobs:
 
       - name: Frontend Tests (Cypress)
         run: |
+          cd backend && npm ci && npm start &
+          npx wait-on http://localhost:5001/api/auth/signin || echo "Wait on backend didn't throw"
           npm ci
           npm run dev &
           npx wait-on http://localhost:5173

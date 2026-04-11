@@ -2,20 +2,20 @@ const request = require('supertest');
 const app = require('../index');
 const db = require('../db');
 
-jest.mock('../db', () => ({
-  query: jest.fn(),
-}));
-
-describe('Auth API Checks', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe('Native PostgreSQL Auth API Checks', () => {
+  // Ensure the database connection completely drains after testing
+  afterAll(async () => {
+    if (db._pool) {
+      await db._pool.end();
+    } else {
+      // In case the module exported close or end directly
+      await db.end && await db.end();
+    }
   });
 
   describe('POST /api/auth/signin', () => {
     it('should return 400 Invalid Credentials if user does not exist', async () => {
-      // Mock DB to return 0 rows
-      db.query.mockResolvedValueOnce({ rows: [] });
-
+      // Using a realistically invalid credential against the real DB
       const res = await request(app)
         .post('/api/auth/signin')
         .send({
@@ -28,19 +28,19 @@ describe('Auth API Checks', () => {
       expect(res.body).toHaveProperty('error', 'Invalid Credentials');
     });
 
-    it('should return 500 if DB fails catastrophically', async () => {
-      db.query.mockRejectedValueOnce(new Error('Connection failed'));
-
+    it('should return 200 and a token if user natively exists in seed_new.sql', async () => {
+      // Test native data loaded directly from PostgreSQL seed_new.sql
       const res = await request(app)
         .post('/api/auth/signin')
         .send({
-          email: 'test@example.com',
-          password: 'pass',
-          role: 'warden'
+          email: 'rahul@student.com',
+          password: 'pass123',
+          role: 'student'
         });
 
-      expect(res.statusCode).toEqual(500);
-      expect(res.body).toHaveProperty('error', 'Connection failed');
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('token');
+      expect(res.body.user).toHaveProperty('email', 'rahul@student.com');
     });
   });
 });
