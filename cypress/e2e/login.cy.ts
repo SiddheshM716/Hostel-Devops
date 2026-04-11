@@ -12,9 +12,8 @@ describe('HostelMate Signup and Login Flow', () => {
   })
 
   it('can navigate to login and view the form', () => {
-    // Assuming there's a link or button that routes to /login
-    // We navigate directly to save time against unpredictable landing page designs
-    cy.visit('/login')
+    // Navigate directly to the actual react route
+    cy.visit('/signin')
 
     cy.get('input[type="email"]').should('exist')    
     cy.get('input[type="password"]').should('exist')
@@ -22,7 +21,7 @@ describe('HostelMate Signup and Login Flow', () => {
   })
 
   it('shows an error toast for invalid login credentials', () => {
-    cy.visit('/login')
+    cy.visit('/signin')
 
     cy.get('input[type="email"]').type('fake@example.com')
     cy.get('input[type="password"]').type('wrongpassword123')
