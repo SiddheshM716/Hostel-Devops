@@ -28,19 +28,34 @@ describe('Native PostgreSQL Auth API Checks', () => {
       expect(res.body).toHaveProperty('error', 'Invalid Credentials');
     });
 
-    it('should return 200 and a token if user natively exists in seed_new.sql', async () => {
-      // Test native data loaded directly from PostgreSQL seed_new.sql
+    it('should return 200 and a token when a dynamically created user natively logs in', async () => {
+      // 1. Create a native user via the API so bcrypt hashes correctly in-flight
+      const signupRes = await request(app)
+        .post('/api/auth/signup')
+        .send({
+          email: 'jest_test@student.com',
+          name: 'Jest Native User',
+          password: 'securepassword123',
+          role: 'student',
+          contact_number: '9999999999',
+          gender: 'Other',
+          date_of_birth: '2000-01-01'
+        });
+
+      expect(signupRes.statusCode).toEqual(200);
+
+      // 2. Validate Signin directly against the PostgreSQL engine
       const res = await request(app)
         .post('/api/auth/signin')
         .send({
-          email: 'rahul@student.com',
-          password: 'pass123',
+          email: 'jest_test@student.com',
+          password: 'securepassword123',
           role: 'student'
         });
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('token');
-      expect(res.body.user).toHaveProperty('email', 'rahul@student.com');
+      expect(res.body.user).toHaveProperty('email', 'jest_test@student.com');
     });
   });
 });
