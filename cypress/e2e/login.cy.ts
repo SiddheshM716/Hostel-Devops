@@ -39,6 +39,6 @@ describe('HostelMate Signup and Login Flow', () => {
     cy.wait('@loginRequest')
 
     // Cypress should catch the error state, usually via a toast or alert text
-    cy.contains('Invalid Credentials', { matchCase: false }).should('exist')
+    cy.contains('Invalid email or password. Please try again.', { matchCase: false }).should('exist')
   })
 })

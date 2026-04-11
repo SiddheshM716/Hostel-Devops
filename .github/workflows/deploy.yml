@@ -22,7 +22,7 @@ jobs:
         working-directory: ./backend
         run: |
           npm ci
-          npm test -- --maxWorkers=2
+          npm test -- --maxWorkers=2 --forceExit
 
       - name: Frontend Tests (Cypress)
         run: |
