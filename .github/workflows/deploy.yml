@@ -27,6 +27,8 @@ jobs:
       - name: Frontend Tests (Cypress)
         run: |
           npm ci
+          npm run dev &
+          npx wait-on http://localhost:5173
           npx cypress run --headless --browser chrome
 
       - name: Log in to Docker Hub
