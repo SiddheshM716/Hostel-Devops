@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5001/api';
+const API_URL = '/api';
 
 export const api = {
     get: async (endpoint: string) => {
