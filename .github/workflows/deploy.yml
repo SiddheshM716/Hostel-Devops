@@ -59,7 +59,7 @@ jobs:
       - name: Frontend Tests (Cypress)
         run: |
           cd backend && npm ci && npm start &
-          npx wait-on http://localhost:5001/api/auth/signin || echo "Wait on backend didn't throw"
+          npx wait-on tcp:localhost:5001 || echo "Wait on backend didn't throw"
           npm ci
           npm run dev &
           npx wait-on http://localhost:5173
