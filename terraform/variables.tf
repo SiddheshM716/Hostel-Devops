@@ -3,11 +3,11 @@ variable "aws_region" {
 }
 
 variable "master_instance_type" {
-  default = "t3.micro" # Bypassing kubeadm preflights for Free Tier
+  default = "t3.small"
 }
 
 variable "worker_instance_type" {
-  default = "t3.micro"
+  default = "t3.small"
 }
 
 variable "worker_count" {

@@ -23,6 +23,24 @@
         state: present
         update_cache: yes
 
+    - name: Load containerd kernel modules
+      shell: |
+        cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+        overlay
+        br_netfilter
+        EOF
+        sudo modprobe overlay
+        sudo modprobe br_netfilter
+
+    - name: Set sysctl parameters
+      shell: |
+        cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.ipv4.ip_forward                 = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        EOF
+        sudo sysctl --system
+
     - name: Add Docker GPG key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
@@ -41,8 +59,9 @@
         mkdir -p /etc/containerd
         containerd config default > /etc/containerd/config.toml
         sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+        touch /etc/containerd/.ansible-configured
       args:
-        creates: /etc/containerd/config.toml
+        creates: /etc/containerd/.ansible-configured
 
     - name: Restart containerd
       systemd:
@@ -50,11 +69,18 @@
         state: restarted
         enabled: yes
 
-    - name: Add Kubernetes repo
+    - name: Add Kubernetes repo key
       shell: |
+        mkdir -p /etc/apt/keyrings
         curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
       args:
         creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      shell: |
+        echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
 
     - name: Install Kubernetes
       apt:
@@ -63,6 +89,7 @@
           - kubeadm
           - kubectl
         state: present
+        update_cache: yes
 
 # ================= MASTER =================
 - hosts: master
@@ -70,7 +97,7 @@
   tasks:
 
     - name: Initialize cluster (ONLY if not already done)
-      command: kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU,Mem
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
       args:
         creates: /etc/kubernetes/admin.conf
 
@@ -95,6 +122,8 @@
         name: "JOIN_HOLDER"
         join_command: "{{ join_cmd.stdout }}"
 
+
+
 # ================= WORKERS =================
 - hosts: workers
   become: yes
@@ -106,5 +135,35 @@
       register: kubelet_conf
 
     - name: Join cluster
-      command: "{{ hostvars['JOIN_HOLDER'].join_command }} --ignore-preflight-errors=NumCPU,Mem"
+      command: "{{ hostvars['JOIN_HOLDER'].join_command }}"
       when: not kubelet_conf.stat.exists
+
+# ================= HELM & MONITORING (MASTER) =================
+- hosts: master
+  become: yes
+  tasks:
+
+    - name: Wait for all nodes to be Ready
+      command: kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
+
+    - name: Install Helm
+      shell: curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Add Prometheus Community Helm Chart
+      command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
+
+    - name: Update Helm Repositories
+      command: helm repo update
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config
+
+    - name: Install kube-prometheus-stack
+      command: helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
+      environment:
+        KUBECONFIG: /home/ubuntu/.kube/config

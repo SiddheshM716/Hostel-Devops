@@ -37,6 +37,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Run Trivy vulnerability scanner on code
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
